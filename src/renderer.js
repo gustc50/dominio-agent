@@ -106,6 +106,13 @@ async function handleChatSubmit(event) {
     // O histórico enviado é o das mensagens anteriores: os provedores acrescentam
     // `userText` ao final por conta própria.
     const response = await window.api.sendMessage({ userText: text, history: state.history });
+
+    if (response.erro) {
+      // Turno falhou: não entra no histórico, para não poluir o contexto da IA.
+      appendMessage('assistant', `⚠️ ${response.erro}`);
+      return;
+    }
+
     appendMessage('assistant', response.text);
     state.history.push({ role: 'user', text });
     state.history.push({ role: 'assistant', text: response.text });
@@ -129,7 +136,7 @@ async function handleOnvioLogin() {
 
     const result = await window.api.onvioLogin();
     resultEl.textContent = result.mensagem;
-    resultEl.className = 'hint ok';
+    resultEl.className = result.ok ? 'hint ok' : 'hint error';
 
     state.settings = await window.api.getSettings();
     updateStatusIndicators(state.settings);

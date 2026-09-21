@@ -1,3 +1,5 @@
+const { mensagemErroHttp } = require('./erro-http');
+
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_TOOL_ITERATIONS = 6;
 
@@ -32,8 +34,7 @@ async function openrouterRunTurn({ apiKey, model, systemPrompt, history, userTex
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Erro da API do OpenRouter (HTTP ${res.status}): ${errText.slice(0, 300)}`);
+      throw new Error(mensagemErroHttp('OpenRouter', res.status, await res.text()));
     }
 
     const data = await res.json();

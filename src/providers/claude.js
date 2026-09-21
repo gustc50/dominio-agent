@@ -1,3 +1,5 @@
+const { mensagemErroHttp } = require('./erro-http');
+
 const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
 const CLAUDE_VERSION = '2023-06-01';
 const MAX_TOOL_ITERATIONS = 6;
@@ -32,8 +34,7 @@ async function claudeRunTurn({ apiKey, model, systemPrompt, history, userText, t
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Erro da API da Anthropic (HTTP ${res.status}): ${errText.slice(0, 300)}`);
+      throw new Error(mensagemErroHttp('Claude (Anthropic)', res.status, await res.text()));
     }
 
     const data = await res.json();

@@ -5,9 +5,10 @@
   "main": "main.js",
   "private": true,
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "postinstall": "node node_modules/electron/install.js"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^44.0.0"
   }
 }

@@ -250,12 +250,15 @@ body {
   cursor: default;
 }
 
+/* align-items: start impede que os cards estiquem para igualar a altura da
+   linha, o que deixava vãos grandes dentro dos cards mais curtos. */
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
   gap: 20px;
   overflow-y: auto;
-  padding-bottom: 20px;
+  padding-bottom: 4px;
 }
 
 .card {

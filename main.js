@@ -41,9 +41,21 @@ app.on('window-all-closed', () => {
 ipcMain.handle('settings:get', () => store.getSettings());
 ipcMain.handle('settings:save', (_event, settings) => store.saveSettings(settings));
 
-ipcMain.handle('onvio:login', async () => onvio.login(mainWindow));
+// Os handlers devolvem o erro como valor em vez de lançar: uma exceção que
+// atravessa o IPC chega ao renderer embrulhada em "Error invoking remote
+// method ...", e esse ruído apareceria para o usuário.
+ipcMain.handle('onvio:login', async () => {
+  try {
+    return await onvio.login(mainWindow);
+  } catch (err) {
+    return { ok: false, mensagem: err.message || String(err) };
+  }
+});
 
 ipcMain.handle('agent:send', async (_event, payload) => {
-  const settings = store.getSettings();
-  return runAgentTurn({ ...payload, settings });
+  try {
+    return await runAgentTurn({ ...payload, settings: store.getSettings() });
+  } catch (err) {
+    return { erro: err.message || String(err) };
+  }
 });

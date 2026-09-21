@@ -17,8 +17,24 @@ página aberta no seu navegador do dia a dia.
 
 Dê duplo clique em `start.bat`.
 
-- Na primeira vez, ele vai rodar `npm install` automaticamente (pode levar alguns minutos).
+- Na primeira vez, ele baixa as dependências. O Electron tem cerca de 300 MB, então pode levar
+  alguns minutos.
 - Nas vezes seguintes, ele apenas abre o aplicativo.
+
+### Se aparecer "Electron failed to install correctly"
+
+A partir do Electron 44, o `npm install` **não baixa mais o binário do aplicativo sozinho** — o
+pacote deixou de ter script de pós-instalação. Por isso este projeto declara o passo
+explicitamente em `package.json`:
+
+```json
+"postinstall": "node node_modules/electron/install.js"
+```
+
+O `start.bat` também confere se `node_modules\electron\dist\electron.exe` existe antes de abrir
+e, se não existir, baixa e reinstala sozinho. Se ainda assim falhar, ele mostra um diagnóstico
+apontando as duas causas prováveis: `npm config get ignore-scripts` ligado (o npm bloqueia o
+script que baixa o binário) ou a rede bloqueando `github.com/electron/electron/releases`.
 
 ## Primeiros passos dentro do app
 
