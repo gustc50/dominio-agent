@@ -8,10 +8,12 @@ const DEFAULT_SETTINGS = {
     claude: { apiKey: '', model: 'claude-sonnet-5' },
     openrouter: { apiKey: '', model: '' },
   },
-  dominio: {
-    apiKey: '',
-    baseUrl: '',
-    authHeader: 'Authorization',
+  onvio: {
+    clientId: '',
+    clientSecret: '',
+    callbackUrl: '',
+    accessToken: '',
+    refreshToken: '',
   },
 };
 
@@ -22,7 +24,6 @@ function getSettingsPath() {
 function mergeDefaults(parsed) {
   parsed = parsed || {};
   const llm = parsed.llm || {};
-  const dominio = parsed.dominio || {};
   return {
     llm: {
       ...DEFAULT_SETTINGS.llm,
@@ -30,7 +31,7 @@ function mergeDefaults(parsed) {
       claude: { ...DEFAULT_SETTINGS.llm.claude, ...llm.claude },
       openrouter: { ...DEFAULT_SETTINGS.llm.openrouter, ...llm.openrouter },
     },
-    dominio: { ...DEFAULT_SETTINGS.dominio, ...dominio },
+    onvio: { ...DEFAULT_SETTINGS.onvio, ...parsed.onvio },
   };
 }
 
@@ -43,8 +44,23 @@ function getSettings() {
   }
 }
 
+// Mescla sobre o que já está salvo: o formulário da interface não envia os tokens
+// OAuth, então salvar as configurações não pode derrubar a sessão ativa do Onvio.
 function saveSettings(settings) {
-  const merged = mergeDefaults(settings);
+  const atual = getSettings();
+  const entrada = settings || {};
+  const llm = entrada.llm || {};
+
+  const merged = {
+    llm: {
+      ...atual.llm,
+      ...llm,
+      claude: { ...atual.llm.claude, ...llm.claude },
+      openrouter: { ...atual.llm.openrouter, ...llm.openrouter },
+    },
+    onvio: { ...atual.onvio, ...entrada.onvio },
+  };
+
   const settingsPath = getSettingsPath();
   fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
   fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2), 'utf-8');

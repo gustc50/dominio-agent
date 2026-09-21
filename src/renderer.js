@@ -32,15 +32,11 @@ function updateStatusIndicators(settings) {
     llmText.textContent = 'IA não configurada';
   }
 
-  const dominioDot = el('statusDominioDot');
-  const dominioText = el('statusDominioText');
-  if (settings.dominio.apiKey && settings.dominio.baseUrl) {
-    dominioDot.classList.add('ok');
-    dominioText.textContent = 'Domínio configurado';
-  } else {
-    dominioDot.classList.remove('ok');
-    dominioText.textContent = 'Domínio não configurado';
-  }
+  const onvioDot = el('statusOnvioDot');
+  const onvioText = el('statusOnvioText');
+  const conectado = Boolean(settings.onvio.refreshToken);
+  onvioDot.classList.toggle('ok', conectado);
+  onvioText.textContent = conectado ? 'Onvio conectado' : 'Onvio desconectado';
 }
 
 function fillFormFromSettings(settings) {
@@ -54,9 +50,9 @@ function fillFormFromSettings(settings) {
   el('openrouterApiKey').value = settings.llm.openrouter.apiKey || '';
   el('openrouterModel').value = settings.llm.openrouter.model || '';
 
-  el('dominioApiKey').value = settings.dominio.apiKey || '';
-  el('dominioBaseUrl').value = settings.dominio.baseUrl || '';
-  el('dominioAuthHeader').value = settings.dominio.authHeader || 'Authorization';
+  el('onvioClientId').value = settings.onvio.clientId || '';
+  el('onvioClientSecret').value = settings.onvio.clientSecret || '';
+  el('onvioCallbackUrl').value = settings.onvio.callbackUrl || '';
 
   updateProviderFieldsVisibility();
   updateStatusIndicators(settings);
@@ -76,10 +72,10 @@ function gatherSettingsFromForm() {
         model: el('openrouterModel').value.trim(),
       },
     },
-    dominio: {
-      apiKey: el('dominioApiKey').value.trim(),
-      baseUrl: el('dominioBaseUrl').value.trim(),
-      authHeader: el('dominioAuthHeader').value.trim() || 'Authorization',
+    onvio: {
+      clientId: el('onvioClientId').value.trim(),
+      clientSecret: el('onvioClientSecret').value.trim(),
+      callbackUrl: el('onvioCallbackUrl').value.trim(),
     },
   };
 }
@@ -103,13 +99,15 @@ async function handleChatSubmit(event) {
   if (!text) return;
 
   appendMessage('user', text);
-  state.history.push({ role: 'user', text });
   input.value = '';
   el('sendBtn').disabled = true;
 
   try {
+    // O histórico enviado é o das mensagens anteriores: os provedores acrescentam
+    // `userText` ao final por conta própria.
     const response = await window.api.sendMessage({ userText: text, history: state.history });
     appendMessage('assistant', response.text);
+    state.history.push({ role: 'user', text });
     state.history.push({ role: 'assistant', text: response.text });
   } catch (err) {
     appendMessage('assistant', `⚠️ ${err.message || err}`);
@@ -119,19 +117,22 @@ async function handleChatSubmit(event) {
   }
 }
 
-async function handleTestDominio() {
-  const resultEl = el('dominioTestResult');
-  resultEl.textContent = 'Testando...';
+async function handleOnvioLogin() {
+  const resultEl = el('onvioLoginResult');
+  resultEl.textContent = 'Abrindo a tela de login do Onvio...';
   resultEl.className = 'hint';
-  const config = {
-    baseUrl: el('dominioBaseUrl').value.trim(),
-    apiKey: el('dominioApiKey').value.trim(),
-    authHeader: el('dominioAuthHeader').value.trim() || 'Authorization',
-  };
+
   try {
-    const result = await window.api.testDominioConnection(config);
+    // O processo principal lê as credenciais do arquivo de configurações,
+    // então o que está no formulário precisa estar salvo antes do login.
+    state.settings = await window.api.saveSettings(gatherSettingsFromForm());
+
+    const result = await window.api.onvioLogin();
     resultEl.textContent = result.mensagem;
-    resultEl.className = result.ok ? 'hint ok' : 'hint error';
+    resultEl.className = 'hint ok';
+
+    state.settings = await window.api.getSettings();
+    updateStatusIndicators(state.settings);
   } catch (err) {
     resultEl.textContent = `Erro: ${err.message || err}`;
     resultEl.className = 'hint error';
@@ -167,7 +168,7 @@ async function init() {
     }
   });
 
-  el('testDominioBtn').addEventListener('click', handleTestDominio);
+  el('onvioLoginBtn').addEventListener('click', handleOnvioLogin);
   el('saveSettingsBtn').addEventListener('click', handleSaveSettings);
 
   state.settings = await window.api.getSettings();

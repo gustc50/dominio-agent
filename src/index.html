@@ -32,8 +32,8 @@
           <span id="statusLlmText">IA não configurada</span>
         </div>
         <div class="status-row">
-          <span class="dot" id="statusDominioDot"></span>
-          <span id="statusDominioText">Domínio não configurado</span>
+          <span class="dot" id="statusOnvioDot"></span>
+          <span id="statusOnvioText">Onvio desconectado</span>
         </div>
       </div>
     </aside>
@@ -42,18 +42,18 @@
       <section id="view-comando" class="view active">
         <header class="view-header">
           <h1>Comando</h1>
-          <p>Converse com o assistente para consultar clientes, lançamentos contábeis e obrigações fiscais no Domínio.</p>
+          <p>Converse com o assistente para enviar documentos fiscais ao Domínio e acompanhar o processamento.</p>
         </header>
 
         <div class="chat">
           <div id="chatLog" class="chat-log">
             <div class="msg msg-assistant">
-              <div class="msg-bubble">Olá! Eu sou o seu assistente contábil. Configure uma chave de IA (Claude ou OpenRouter) na aba <strong>Configurações</strong> para começar. Posso consultar clientes, lançamentos contábeis e obrigações fiscais no Domínio.</div>
+              <div class="msg-bubble">Olá! Eu sou o seu assistente contábil. Na aba <strong>Configurações</strong>, informe uma chave de IA (Claude ou OpenRouter) e conecte-se ao Onvio. Depois disso posso enviar XMLs de documentos fiscais ao Domínio e consultar o status de processamento dos lotes.</div>
             </div>
           </div>
 
           <form id="chatForm" class="chat-input-row">
-            <textarea id="chatInput" rows="2" placeholder="Escreva um comando, ex: liste os lançamentos contábeis da empresa X em setembro"></textarea>
+            <textarea id="chatInput" rows="2" placeholder="Escreva um comando, ex: envie o arquivo C:\notas\nfe123.xml para o Domínio"></textarea>
             <button type="submit" id="sendBtn">Enviar</button>
           </form>
         </div>
@@ -110,28 +110,28 @@
           </div>
 
           <div class="card">
-            <h2>Domínio (Thomson Reuters)</h2>
-            <label>Chave de API do Domínio
-              <input type="password" id="dominioApiKey" placeholder="Chave de acesso fornecida pelo Domínio" autocomplete="off" />
+            <h2>Onvio / Domínio (Thomson Reuters)</h2>
+            <label>Client ID
+              <input type="text" id="onvioClientId" placeholder="Fornecido pela equipe da API Onvio BR" autocomplete="off" />
             </label>
-            <label>URL base da API
-              <input type="text" id="dominioBaseUrl" placeholder="https://api.dominiosistemas.com.br/..." />
+            <label>Client Secret
+              <input type="password" id="onvioClientSecret" placeholder="Fornecido pela equipe da API Onvio BR" autocomplete="off" />
             </label>
-            <label>Nome do header de autenticação
-              <input type="text" id="dominioAuthHeader" placeholder="Authorization" />
+            <label>Callback URL
+              <input type="text" id="onvioCallbackUrl" placeholder="A mesma URL registrada junto à Thomson Reuters" />
             </label>
-            <button type="button" id="testDominioBtn" class="secondary">Testar conexão</button>
-            <p id="dominioTestResult" class="hint"></p>
-            <p class="hint">⚠️ A integração real com a API do Domínio ainda depende da documentação oficial. Por enquanto, as consultas do assistente retornam dados de exemplo, deixando a estrutura pronta para conectar aos endpoints reais assim que estiverem disponíveis.</p>
+            <button type="button" id="onvioLoginBtn" class="secondary">Conectar ao Onvio (login)</button>
+            <p id="onvioLoginResult" class="hint"></p>
+            <p class="hint">A API do Onvio usa OAuth 2.0: ao clicar em conectar, abre-se a tela de login da Thomson Reuters. Depois de autorizar, o app guarda o token de acesso e o refresh token para renovar a sessão sozinho. As credenciais (Client ID, Client Secret e a Callback URL registrada) são liberadas pela equipe da API Onvio BR mediante solicitação.</p>
           </div>
 
           <div class="card">
             <h2>Ações disponíveis para o assistente</h2>
             <ul class="feature-list">
-              <li>Consultar clientes/empresas cadastradas</li>
-              <li>Consultar lançamentos contábeis</li>
-              <li>Consultar obrigações fiscais e prazos</li>
+              <li>Enviar XML de documento fiscal (NF-e, NFC-e, CT-e, CF-e) para o Domínio</li>
+              <li>Consultar o status de processamento de um lote enviado</li>
             </ul>
+            <p class="hint">Esse é o escopo coberto pela Onvio BR Accounting API. Consultas de lançamentos contábeis e de obrigações fiscais não possuem endpoint nessa API.</p>
           </div>
         </div>
 

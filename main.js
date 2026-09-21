@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const store = require('./src/store');
-const dominio = require('./src/dominio-tools');
+const onvio = require('./src/onvio-client');
 const { runAgentTurn } = require('./src/agent');
 
 let mainWindow;
@@ -41,9 +41,7 @@ app.on('window-all-closed', () => {
 ipcMain.handle('settings:get', () => store.getSettings());
 ipcMain.handle('settings:save', (_event, settings) => store.saveSettings(settings));
 
-ipcMain.handle('dominio:test', async (_event, config) => {
-  return dominio.testarConexao(config || {});
-});
+ipcMain.handle('onvio:login', async () => onvio.login(mainWindow));
 
 ipcMain.handle('agent:send', async (_event, payload) => {
   const settings = store.getSettings();
