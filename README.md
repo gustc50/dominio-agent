@@ -59,10 +59,13 @@ src/providers/openrouter.js   Cliente da API (compatível OpenAI) do OpenRouter,
 - Aba de Configurações separada da aba de Comando.
 - Configuração e alternância entre Claude e OpenRouter como "cérebro" do agente.
 - Loop de agente com *function calling* funcionando de ponta a ponta nos dois provedores.
-- Integração **real** com a Onvio BR Accounting API: login OAuth 2.0, renovação automática do
-  token quando expira e duas ferramentas disponíveis para o agente:
+- Integração **real** com a Onvio BR Accounting API: login OAuth 2.0 e renovação automática do
+  token quando expira.
+- Quatro ferramentas disponíveis para o agente:
   - Enviar XML de documento fiscal (NF-e, NFC-e, CT-e, CF-e) para o Domínio
   - Consultar o status de processamento de um lote enviado
+  - Gerar arquivo de lançamentos contábeis no leiaute posicional do Domínio
+  - Ler um arquivo de lançamentos exportado do Domínio (com filtro por data e soma dos valores)
 
 ## Detalhes técnicos da API
 
@@ -98,16 +101,48 @@ GET  https://api.onvio.com.br/dominio/invoice/v2/batches/{id}
        -> { "status": { "message": "Processado" } }
 ```
 
+## Lançamentos contábeis: integração por arquivo
+
+A API do Onvio não cobre lançamentos contábeis. O caminho suportado para isso no Domínio é o
+arquivo posicional, que funciona nos dois sentidos:
+
+- **Gerar para importar**: o agente grava um `.txt` que você importa em
+  `Utilitários → Importação → Lançamentos Contábeis em Lote (Leiaute Domínio Sistemas)`.
+- **Ler o que foi exportado**: você exporta em `Utilitários → Exportação → Lançamentos` e o
+  agente lê esse arquivo para responder sobre os lançamentos (o total e a soma são calculados
+  em código, não estimados pela IA).
+
+Formato (implementado em `src/dominio-lancamentos.js`): posicional de largura fixa, encoding
+Latin-1 sem BOM, quebra de linha CRLF inclusive na última linha, valores em centavos e datas
+`dd/mm/aaaa`. Registros: `01` cabeçalho (55), `02` lançamento (165), `03` partida (664),
+`99` rodapé (`9`×100). O sequencial é global: lançamento *i* (0-based) gera `02` = `2i+1` e
+`03` = `2i+2`.
+
+### Ressalvas honestas
+
+- **A importação não é automática.** O app gera o arquivo; quem importa e confere no Domínio é
+  você. Confira o lote antes de confirmar.
+- Só é gerada **partida simples** (um débito e um crédito por lançamento). O comportamento do
+  Domínio com partida múltipla neste leiaute não é conhecido, então não foi implementado.
+- O leiaute foi decodificado a partir de um export real do Domínio por um projeto de terceiros
+  ([Facility_Contabil](https://github.com/mastrocontabil-web/Facility_Contabil)), que relata
+  importar sem erro. Ainda assim, **valide o primeiro arquivo gerado** num ambiente de teste:
+  o número do lote, o `1` final do cabeçalho e o comportamento com código de histórico não
+  cadastrado são os pontos mais sensíveis.
+
 ## Limitação importante de escopo
 
 A Onvio BR Accounting API é uma API de **integração de documentos fiscais**, não de consulta
 contábil. Os recursos que ela expõe giram em torno do envio de XMLs (NF-e, NFC-e, CT-e, CF-e)
-para o Domínio Contábil e do acompanhamento desse processamento.
+para o Domínio Contábil e do acompanhamento desse processamento. Lançamentos contábeis são
+atendidos pelo arquivo posicional descrito acima.
 
-Não há endpoint público documentado para consultar **lançamentos contábeis** nem **obrigações
-fiscais e prazos**. Por isso essas ações não existem no app: seria pior entregar um botão que
-devolve dado inventado. O agente é instruído a dizer que não consegue realizá-las caso sejam
-pedidas.
+Já para **obrigações fiscais e prazos** não foi encontrado nenhum caminho de integração: nem
+endpoint na API, nem leiaute público de importação/exportação. As alternativas seriam acesso
+direto ao banco (o Domínio usa Sybase, acessível via ODBC) ou exportar relatórios à mão —
+nenhuma das duas é suportada pela Thomson Reuters nem sólida o bastante para o app depender
+dela. Por isso essa ação não existe aqui: seria pior entregar um botão que devolve dado
+inventado. O agente é instruído a dizer que não consegue realizá-la caso seja pedida.
 
 O portal do desenvolvedor também cita os recursos `ClientInfoResource` (lista de clientes que o
 usuário pode integrar) e `IntegrationResource`. Os caminhos exatos desses endpoints não estão
