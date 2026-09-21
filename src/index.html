@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';" />
+<title>Domínio Agent</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">DA</div>
+        <div class="brand-text">
+          <strong>Domínio Agent</strong>
+          <span>Assistente Contábil</span>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="comando" type="button">
+          <span class="tab-icon">💬</span> Comando
+        </button>
+        <button class="tab-btn" data-tab="config" type="button">
+          <span class="tab-icon">⚙️</span> Configurações
+        </button>
+      </nav>
+
+      <div class="sidebar-status">
+        <div class="status-row">
+          <span class="dot" id="statusLlmDot"></span>
+          <span id="statusLlmText">IA não configurada</span>
+        </div>
+        <div class="status-row">
+          <span class="dot" id="statusDominioDot"></span>
+          <span id="statusDominioText">Domínio não configurado</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section id="view-comando" class="view active">
+        <header class="view-header">
+          <h1>Comando</h1>
+          <p>Converse com o assistente para consultar clientes, lançamentos contábeis e obrigações fiscais no Domínio.</p>
+        </header>
+
+        <div class="chat">
+          <div id="chatLog" class="chat-log">
+            <div class="msg msg-assistant">
+              <div class="msg-bubble">Olá! Eu sou o seu assistente contábil. Configure uma chave de IA (Claude ou OpenRouter) na aba <strong>Configurações</strong> para começar. Posso consultar clientes, lançamentos contábeis e obrigações fiscais no Domínio.</div>
+            </div>
+          </div>
+
+          <form id="chatForm" class="chat-input-row">
+            <textarea id="chatInput" rows="2" placeholder="Escreva um comando, ex: liste os lançamentos contábeis da empresa X em setembro"></textarea>
+            <button type="submit" id="sendBtn">Enviar</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="view-config" class="view">
+        <header class="view-header">
+          <h1>Configurações</h1>
+          <p>Configure o acesso ao Domínio e ao provedor de IA que irá controlar o assistente.</p>
+        </header>
+
+        <div class="settings-grid">
+          <div class="card">
+            <h2>Provedor de IA</h2>
+            <div class="provider-choice">
+              <label class="provider-card">
+                <input type="radio" name="provider" value="claude" id="providerClaude" />
+                <div>
+                  <strong>Claude (Anthropic)</strong>
+                  <span>Use sua chave de API da Anthropic.</span>
+                </div>
+              </label>
+              <label class="provider-card">
+                <input type="radio" name="provider" value="openrouter" id="providerOpenrouter" />
+                <div>
+                  <strong>OpenRouter</strong>
+                  <span>Acesse diversos modelos, incluindo Claude, por uma única chave.</span>
+                </div>
+              </label>
+            </div>
+
+            <div id="claudeFields" class="provider-fields">
+              <label>Chave de API da Anthropic
+                <input type="password" id="claudeApiKey" placeholder="sk-ant-..." autocomplete="off" />
+              </label>
+              <label>Modelo
+                <select id="claudeModel">
+                  <option value="claude-opus-5">Claude Opus 5</option>
+                  <option value="claude-sonnet-5">Claude Sonnet 5</option>
+                  <option value="claude-fable-5-1">Claude Fable 5.1</option>
+                  <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+                </select>
+              </label>
+            </div>
+
+            <div id="openrouterFields" class="provider-fields">
+              <label>Chave de API do OpenRouter
+                <input type="password" id="openrouterApiKey" placeholder="sk-or-..." autocomplete="off" />
+              </label>
+              <label>Modelo (slug do OpenRouter)
+                <input type="text" id="openrouterModel" placeholder="ex.: fabricante/nome-do-modelo, conforme a documentação do OpenRouter" />
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Domínio (Thomson Reuters)</h2>
+            <label>Chave de API do Domínio
+              <input type="password" id="dominioApiKey" placeholder="Chave de acesso fornecida pelo Domínio" autocomplete="off" />
+            </label>
+            <label>URL base da API
+              <input type="text" id="dominioBaseUrl" placeholder="https://api.dominiosistemas.com.br/..." />
+            </label>
+            <label>Nome do header de autenticação
+              <input type="text" id="dominioAuthHeader" placeholder="Authorization" />
+            </label>
+            <button type="button" id="testDominioBtn" class="secondary">Testar conexão</button>
+            <p id="dominioTestResult" class="hint"></p>
+            <p class="hint">⚠️ A integração real com a API do Domínio ainda depende da documentação oficial. Por enquanto, as consultas do assistente retornam dados de exemplo, deixando a estrutura pronta para conectar aos endpoints reais assim que estiverem disponíveis.</p>
+          </div>
+
+          <div class="card">
+            <h2>Ações disponíveis para o assistente</h2>
+            <ul class="feature-list">
+              <li>Consultar clientes/empresas cadastradas</li>
+              <li>Consultar lançamentos contábeis</li>
+              <li>Consultar obrigações fiscais e prazos</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="save-row">
+          <button type="button" id="saveSettingsBtn">Salvar configurações</button>
+          <span id="saveStatus" class="hint"></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

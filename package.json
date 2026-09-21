@@ -1,0 +1,13 @@
+{
+  "name": "dominio-agent",
+  "version": "0.1.0",
+  "description": "Assistente de IA (Claude ou OpenRouter) para operar o sistema Domínio (Thomson Reuters) via API.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
